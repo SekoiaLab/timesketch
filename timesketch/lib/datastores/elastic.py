@@ -125,6 +125,8 @@ class ElasticsearchDataStore(object):
         if self.user and self.password:
             parameters['http_auth'] = (self.user, self.password)
 
+        parameters['timeout'] = 30
+
         self.client = Elasticsearch(
             [{'host': host, 'port': port}], **parameters)
 
@@ -654,6 +656,8 @@ class ElasticsearchDataStore(object):
             scroll_size = len(result['hits']['hits'])
             for event in result['hits']['hits']:
                 yield event
+
+        self.client.clear_scroll(scroll_id=scroll_id)
 
     def get_filter_labels(self, sketch_id, indices):
         """Aggregate labels for a sketch.
