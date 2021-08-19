@@ -86,8 +86,6 @@ class SigmaPlugin(interface.BaseAnalyzer):
                     logger.debug('Rule {0:d}/{1:d}'.format(
                         sigma_rule_counter, len(sigma_rules)))
             except elasticsearch.TransportError as e:
-                # this is caused by too many ES queries in short time range
-                # TODO: https://github.com/google/timesketch/issues/1782
                 sleep_time : int = current_app.config.get(
                     'SIGMA_TAG_DELAY', 15)
                 logger.error(
@@ -96,6 +94,8 @@ class SigmaPlugin(interface.BaseAnalyzer):
                     '(https://github.com/google/timesketch/issues/1782)'
                     .format(
                         rule.get('file_name'), e, sleep_time), exc_info=True)
+                # this is caused by too many ES queries in short time range
+                # TODO: https://github.com/google/timesketch/issues/1782
                 time.sleep(sleep_time)
                 tagged_events_counter = self.run_sigma_rule(
                     rule.get('es_query'), rule.get('file_name'),
