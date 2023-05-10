@@ -75,6 +75,8 @@ class SigmaPlugin(interface.BaseAnalyzer):
         for rule in sigma_rules:
             tags_applied[rule.get('file_name')] = 0
             try:
+                if not rule.get('es_query'):
+                    continue
                 sigma_rule_counter += 1
                 tagged_events_counter = self.run_sigma_rule(
                     rule.get('es_query'), rule.get('file_name'),

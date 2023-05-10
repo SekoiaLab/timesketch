@@ -202,24 +202,36 @@ def get_sigma_rule(filepath, sigma_config=None):
             abs_path, 'r', encoding='utf-8', errors='replace') as file:
         try:
             rule_return = {}
+            parsed_sigma_rules = {}
+            logsource = dict()
             rule_yaml_data = yaml.safe_load_all(file.read())
             for doc in rule_yaml_data:
+                if 'logsource' not in doc:
+                    logsource = next(rule_yaml_data)
+                    if 'detection' not in logsource:
+                        logsource['detection'] = dict()
+                    if 'detection' in doc:
+                        for k, v in doc['detection'].items():
+                            logsource['detection'][k] = v
+                    doc.update(logsource)
                 rule_return.update(doc)
                 parser = sigma_collection.SigmaCollectionParser(
                     yaml.safe_dump(doc), sigma_conf_obj, None)
                 parsed_sigma_rules = parser.generate(sigma_backend)
+                if logsource:
+                    break
 
         except NotImplementedError as exception:
             logger.error(
                 'Error generating rule in file {0:s}: {1!s}'
                 .format(abs_path, exception))
-            raise
+            # raise
 
         except sigma_exceptions.SigmaParseError as exception:
             logger.error(
                 'Sigma parsing error generating rule in file {0:s}: {1!s}'
                 .format(abs_path, exception))
-            raise
+            # raise
 
         except yaml.parser.ParserError as exception:
             logger.error(
